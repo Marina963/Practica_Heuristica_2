@@ -13,10 +13,11 @@ ad = False
 def main(file):
     with open(file, "r") as f:
         lectura = f.readlines()
-
-    set_filas(int(lectura[0][0]))
-    set_columnas(int(lectura[0][2]))
-
+    num_rows = lectura[0].index("x")
+    set_filas(int(lectura[0][0:num_rows]))
+    num_cols = lectura[0].index("\n")
+    set_columnas(int(lectura[0][num_rows + 1:num_cols]))
+    
     dominio_entero = calc_dominio_entero(columnas, filas)
     dominio_electrico = calc_dominio_electrico(lectura[1])
     dominio_no_electrico = calc_dominio_no_electrico(dominio_electrico, dominio_entero)
@@ -121,7 +122,8 @@ def prioridad(vehiculo_i, vehiculo_j):
 def crear_variables(lectura):
     lista = []
     for i in range(2, len(lectura)):
-        v = Vehiculos(lectura[i][0], lectura[i][2:5], lectura[i][6])
+        index = lectura[i].index("-")
+        v = Vehiculos(lectura[i][0:index], lectura[i][index+1:index+4], lectura[i][index+5])
         lista.append(v)
     return lista
 
@@ -137,10 +139,13 @@ def calc_dominio_electrico(lista_elec):
     dominio_electrico = []
     indice = 3
     while indice < len(lista_elec) - 1:
-        lec = lista_elec[indice:indice + 5]
-        indice += 5
-        tupla = (int(lec[1]), int(lec[3]))
+        opening = lista_elec.index("(", indice)
+        closing = lista_elec.index(")", indice)
+        lec = lista_elec[opening: closing]
+        sep = lec.index(",")
+        tupla = (int(lec[1:sep]), int(lec[sep + 1:]))
         dominio_electrico.append(tupla)
+        indice += len(lec) + 1
     return dominio_electrico
 
 
