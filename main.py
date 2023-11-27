@@ -9,6 +9,17 @@ global filas
 global columnas
 ad = False
 
+def set_ad(value):
+    global ad
+    ad = value
+    
+def set_filas(value):
+    global filas
+    filas = value
+    
+def set_columnas(value):
+    global columnas
+    columnas = value
 
 def main(file):
     with open(file, "r") as f:
@@ -21,6 +32,8 @@ def main(file):
     
     dominio_entero = calc_dominio_entero(columnas, filas)
     dominio_electrico = calc_dominio_electrico(lectura[1])
+    if (isinstance(dominio_electrico, int)):
+        return -1
     dominio_no_electrico = calc_dominio_no_electrico(dominio_electrico, dominio_entero)
     
     variables = crear_variables(lectura)
@@ -37,13 +50,8 @@ def main(file):
         for j in variables:
             if i.id != j.id:
                 if i.type == "TSU" and j.type == "TNU":
-<<<<<<< HEAD
                     problem.addConstraint(prioridad, (str(i), str(j)))
     problem.addConstraint(adyacencia, problem._variables)
-=======
-                    problem.addConstraint(prioridad, (i.calc_v(), j.calc_v()))
-    problem.addConstraint(adyacencia, problem.variables)
->>>>>>> 1d5550d85f4fa1907150a23484681e7823215d71
                     
     sol = problem.getSolutions()
     sols = []
@@ -77,22 +85,6 @@ def escr_salida(num_sol, sols, name):
                         salida.write("\n")
             salida.write("\n")
 
-
-def set_ad(value):
-    global ad
-    ad = value
-
-
-def set_filas(value):
-    global filas
-    filas = value
-
-
-def set_columnas(value):
-    global columnas
-    columnas = value
-
-
 def adyacencia(*variables):
     for vehiculo in variables:
         for vadj in variables:
@@ -111,55 +103,62 @@ def adyacencia(*variables):
                                     return False
                         elif vadj[0] == vehiculo[0] + 1:
                             for vadj2 in variables:
-                                if vadj2[0] == ( vehiculo[0] - 1):
+                                if vadj2[0] == (vehiculo[0] - 1):
                                     return False
     return True
-
 
 def prioridad(vehiculo_i, vehiculo_j):
     if vehiculo_i[0] == vehiculo_j[0]:
         return vehiculo_i[1] > vehiculo_j[1]
     return True
 
-
 def crear_variables(lectura):
-    lista = []
-    for i in range(2, len(lectura)):
-        index = lectura[i].index("-")
-        v = Vehiculos(lectura[i][0:index], lectura[i][index+1:index+4], lectura[i][index+5])
-        lista.append(v)
-    return lista
-
-def calc_dominio_no_electrico(dominio_electrico, dominio_entero):
-    dominio_no_electrico = []
-    for tupla in dominio_entero:
-        if tupla not in dominio_electrico:
-            dominio_no_electrico.append(tupla)
-    return dominio_no_electrico
-
-
-def calc_dominio_electrico(lista_elec):
-    dominio_electrico = []
-    indice = 3
-    while indice < len(lista_elec) - 1:
-        opening = lista_elec.index("(", indice)
-        closing = lista_elec.index(")", indice)
-        lec = lista_elec[opening: closing]
-        sep = lec.index(",")
-        tupla = (int(lec[1:sep]), int(lec[sep + 1:]))
-        dominio_electrico.append(tupla)
-        indice += len(lec) + 1
-    return dominio_electrico
-
+	lista = []
+	for i in range(2, len(lectura)):
+	    index = lectura[i].index("-")
+	    v = Vehiculos(lectura[i][0:index], lectura[i][index+1:index+4], lectura[i][index+5])
+	    lista.append(v)
+	return lista
 
 def calc_dominio_entero(columnas, filas):
-    dominio_entero = []
-    for row in range(filas):
-        for col in range(columnas):
-            pos = (row + 1, col + 1)
-            dominio_entero.append(pos)
-    return dominio_entero
+	dominio_entero = []
+	for row in range(filas):
+	    for col in range(columnas):
+	        pos = (row + 1, col + 1)
+	        dominio_entero.append(pos)
+	return dominio_entero
 
+def calc_dominio_no_electrico(dominio_electrico, dominio_entero):
+	dominio_no_electrico = []
+	for tupla in dominio_entero:
+	    if tupla not in dominio_electrico:
+	        dominio_no_electrico.append(tupla)
+	return dominio_no_electrico
+
+def calc_dominio_electrico(lista_elec):
+	dominio_electrico = []
+	indice = 3
+	while indice < len(lista_elec) - 1:
+	    opening = lista_elec.index("(", indice)
+	    closing = lista_elec.index(")", indice)
+	    lec = lista_elec[opening: closing]
+	    sep = lec.index(",")
+	    tupla = (int(lec[1:sep]), int(lec[sep + 1:]))
+	    if tupla[0] > filas:
+	        print("Row out of index. " + str(filas) + " is max, but " + str(tupla[0]) + " was given.")
+	        return -1
+	    if tupla[1] > columnas:
+	        print("Column out of index. " + str(columnas) + " is max, but " + str(tupla[1]) + " was given.")
+	        return -1
+	    dominio_electrico.append(tupla)
+	    indice += len(lec) + 1
+	return dominio_electrico
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if len(sys.argv) < 2:
+       print("File not specified.")
+    elif len(sys.argv) > 2:
+       print("Too many arguments, main.py needs 2 but " + str(len(sys.argv)) + " were given.")
+    else:
+       main(sys.argv[1])
+    

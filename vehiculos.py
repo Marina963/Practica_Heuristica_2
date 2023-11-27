@@ -6,4 +6,3 @@ class Vehiculos():
 
     def __str__(self):
         return self.id + "-" + self.type + "-" + self.freezer
-
