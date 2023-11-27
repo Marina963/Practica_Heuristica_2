@@ -13,6 +13,7 @@ ad = False
 def main(file):
     with open(file, "r") as f:
         lectura = f.readlines()
+    
     num_rows = lectura[0].index("x")
     set_filas(int(lectura[0][0:num_rows]))
     num_cols = lectura[0].index("\n")
@@ -21,21 +22,22 @@ def main(file):
     dominio_entero = calc_dominio_entero(columnas, filas)
     dominio_electrico = calc_dominio_electrico(lectura[1])
     dominio_no_electrico = calc_dominio_no_electrico(dominio_electrico, dominio_entero)
+    
     variables = crear_variables(lectura)
     
     problem = Problem()
     for v in variables:
         if v.freezer == "C":
-            problem.addVariable(v.calc_v(), dominio_electrico)
+            problem.addVariable(str(v), dominio_electrico)
         else:
-            problem.addVariable(v.calc_v(), dominio_no_electrico)
+            problem.addVariable(str(v), dominio_no_electrico)
 
     problem.addConstraint(AllDifferentConstraint())
     for i in variables:
         for j in variables:
             if i.id != j.id:
                 if i.type == "TSU" and j.type == "TNU":
-                    problem.addConstraint(prioridad, (i.calc_v(), j.calc_v()))
+                    problem.addConstraint(prioridad, (str(i), str(j)))
     problem.addConstraint(adyacencia, problem._variables)
                     
     sol = problem.getSolutions()
