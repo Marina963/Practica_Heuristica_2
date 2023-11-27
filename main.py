@@ -21,10 +21,6 @@ def main(file):
     dominio_electrico = calc_dominio_electrico(lectura[1])
     dominio_no_electrico = calc_dominio_no_electrico(dominio_electrico, dominio_entero)
     variables = crear_variables(lectura)
-    lista_nombres = []
-    
-    for i in variables:
-        lista_nombres.append(i.calc_v())
     
     problem = Problem()
     for v in variables:
@@ -39,13 +35,11 @@ def main(file):
             if i.id != j.id:
                 if i.type == "TSU" and j.type == "TNU":
                     problem.addConstraint(prioridad, (i.calc_v(), j.calc_v()))
- #           problem.addConstraint(lambda i, j: True if i[1] == j[1] and i[0] )
     problem.addConstraint(adyacencia, problem._variables)
                     
     sol = problem.getSolutions()
     sols = []
-    print(len(sol))
-    for i in range(6):
+    for i in range(min(10, len(sol))):
         num = random.randint(0, len(sol) - 1)
         sols.append(sol[num])
 
@@ -92,9 +86,6 @@ def set_columnas(value):
 
 
 def adyacencia(*args):
-    lista_bools = []
-    for i in range(len(args)):
-        lista_bools.append(False)
     for i in range(len(args)):
         vehiculo = args[i];
         for j in range(len(args)):
@@ -107,15 +98,6 @@ def adyacencia(*args):
                     # Esta abajo
                     elif vehiculo[0] == filas and vadj[0] == (filas -1):
                         return False
-                        """else:
-                    
-                        if vadj[0] == (vehiculo[0] - 1) or vadj[0] == (vehiculo[0] + 1):
-                            if not lista_bools[i] and not lista_bools[j]:
-                                lista_bools[i] = True
-                                lista_bools[j] = True
-                            else:
-                                return False
-                        """
                     else:
                         if vadj[0] == (vehiculo[0] - 1): 
                             for k in range(len(args)):
@@ -126,8 +108,7 @@ def adyacencia(*args):
                             for k in range(len(args)):
                                 if k!= i and k != j:
                                     if args[k][0] == vehiculo[0] -1:
-                                        return False      
-                                         
+                                        return False                         
     return True
 
 
@@ -154,9 +135,7 @@ def calc_dominio_no_electrico(dominio_electrico, dominio_entero):
 
 def calc_dominio_electrico(lista_elec):
     dominio_electrico = []
-    lect_temp = ""
     indice = 3
-
     while indice < len(lista_elec) - 1:
         lec = lista_elec[indice:indice + 5]
         indice += 5
