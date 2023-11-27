@@ -36,7 +36,7 @@ def main(file):
             if i.id != j.id:
                 if i.type == "TSU" and j.type == "TNU":
                     problem.addConstraint(prioridad, (i.calc_v(), j.calc_v()))
-    problem.addConstraint(adyacencia, problem._variables)
+    problem.addConstraint(adyacencia, problem.variables)
                     
     sol = problem.getSolutions()
     sols = []
@@ -86,30 +86,26 @@ def set_columnas(value):
     columnas = value
 
 
-def adyacencia(*args):
-    for i in range(len(args)):
-        vehiculo = args[i];
-        for j in range(len(args)):
-            vadj = args[j]
-            if (i != j):
+def adyacencia(*variables):
+    for vehiculo in variables:
+        for vadj in variables:
+            if vehiculo != vadj:
                 if vehiculo[1] == vadj[1]:
-                    # Esta arriba
+                    #Esta arriba
                     if vehiculo[0] == 1 and vadj[0] == 2:
                         return False
-                    # Esta abajo
-                    elif vehiculo[0] == filas and vadj[0] == (filas -1):
+                    #Esta abajo
+                    elif vehiculo[0] == filas and vadj[0] == (filas - 1):
                         return False
                     else:
-                        if vadj[0] == (vehiculo[0] - 1): 
-                            for k in range(len(args)):
-                                if k != i and k != j:
-                                    if args[k][0] == vehiculo[0] + 1:
-                                        return False
+                        if vadj[0] == (vehiculo[0] - 1):
+                            for vadj2 in variables:
+                                if vadj2[0] == (vehiculo[0] + 1):
+                                    return False
                         elif vadj[0] == vehiculo[0] + 1:
-                            for k in range(len(args)):
-                                if k!= i and k != j:
-                                    if args[k][0] == vehiculo[0] -1:
-                                        return False                         
+                            for vadj2 in variables:
+                                if vadj2[0] == ( vehiculo[0] - 1):
+                                    return False
     return True
 
 
