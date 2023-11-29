@@ -32,8 +32,7 @@ def main(file):
     
     dominio_entero = calc_dominio_entero(columnas, filas)
     dominio_electrico = calc_dominio_electrico(lectura[1])
-    if (isinstance(dominio_electrico, int)):
-        return -1
+    if (isinstance(dominio_electrico, int)): return -1
     dominio_no_electrico = calc_dominio_no_electrico(dominio_electrico, dominio_entero)
     
     variables = crear_variables(lectura)
@@ -58,9 +57,7 @@ def main(file):
     for i in range(min(10, len(sol))):
         num = random.randint(0, len(sol) - 1)
         sols.append(sol[num])
-
-    ind = file.index(".")
-    escr_salida(len(sol), sols, file[0:ind])
+    escr_salida(len(sol), sols, file)
 
 
 def escr_salida(num_sol, sols, name):
@@ -99,11 +96,11 @@ def adyacencia(*variables):
                     else:
                         if vadj[0] == (vehiculo[0] - 1):
                             for vadj2 in variables:
-                                if vadj2[0] == (vehiculo[0] + 1):
+                                if vadj2[1] == vadj[1] and vadj2[0] == (vehiculo[0] + 1):
                                     return False
                         elif vadj[0] == vehiculo[0] + 1:
                             for vadj2 in variables:
-                                if vadj2[0] == (vehiculo[0] - 1):
+                                if vadj2[1] == vadj[1] and vadj2[0] == (vehiculo[0] - 1):
                                     return False
     return True
 
