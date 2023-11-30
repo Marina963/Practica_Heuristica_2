@@ -54,10 +54,12 @@ def main(file):
                     
     sol = problem.getSolutions()
     sols = []
+    num_sols = len(sol)
     for i in range(min(10, len(sol))):
         num = random.randint(0, len(sol) - 1)
-        sols.append(sol[num])
-    escr_salida(len(sol), sols, file)
+        sols.append(sol.pop(num))
+    	#sols.append(sol[i])
+    escr_salida(num_sols, sols, file)
 
 
 def escr_salida(num_sol, sols, name):
