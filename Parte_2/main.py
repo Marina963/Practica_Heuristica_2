@@ -47,7 +47,6 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
 						lista_abierta.append(s)
 			sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
 	if exito:
-		print(lista_cerrada[len(lista_cerrada) -1].pos)
 		if len(lista_cerrada) == 0:
 			return nodo_inicial.pos
 		predecesor = nodo.predecesor

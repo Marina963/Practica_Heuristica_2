@@ -11,7 +11,7 @@ class Ambulancia:
 		self.coste = coste
 		self.heuristica = 0
 		self.evaluacion = 0
-		self.predecesor_indice = predecesor_indice
+		self.predecesor = predecesor_indice
 	
 	def __str__(self):
 		return str(self.pos) 
@@ -32,7 +32,7 @@ class Ambulancia:
 		return [self.pos, self.ocupacion_hospitales[0], self.ocupacion_hospitales[1]]	
 	
 	def get_data(self):
-		return [self.pos, self.ocupacion_hospitales, self.plazas_c]
+		return [self.pos, self.ocupacion_hospitales, self.plazas_c, self.plazas_nc]
 	
 	def _precondiciones(self, tablero, operacion):	
 		"""Precondiciones"""
@@ -77,7 +77,6 @@ class Ambulancia:
 
 	def _efectos(self, tablero, operacion, num_h):
 		"""Efectos"""
-		#Calcula la batería
 		#Mira que tipo de casilla es a la que se mueve
 		match operacion:
 			case 0:
@@ -96,6 +95,7 @@ class Ambulancia:
 			bateria_gastada = 1
 		match casilla:
 			case "N":
+				print(self.pos, self.plazas_nc, operacion)
 				if len(self.plazas_nc) < capacidad_max[0]:
 					self.plazas_nc.append("nc")
 					tablero.mapa[casilla_pos[0]][casilla_pos[1]] = "1"
@@ -104,7 +104,7 @@ class Ambulancia:
 					tablero.mapa[casilla_pos[0]][casilla_pos[1]] = "1"
 			case "C":
 				if len(self.plazas_c) < capacidad_max[1] and "nc" not in self.plazas_c:
-					if self.plazas_nc == capacidad_max[0] or len(tablero.nc) == self.ocupacion_hospitales[0] + len(self.plazas_nc): 
+					if self.plazas_nc == capacidad_max[0] or len(tablero.nc) == self.ocupacion_hospitales[1] + len(self.plazas_nc): 
 						self.plazas_c.append("c")
 						tablero.mapa[casilla_pos[0]][casilla_pos[1]] = "1"
 			case "CC":
