@@ -17,11 +17,11 @@ class Map:
 		for i in range(len(self.mapa)):
 			for j in range(len(self.mapa[i])):
 				casilla = self.mapa[i][j]
-				if (casilla == "P"):
+				if casilla == "P":
 					self.parking = [i, j]
-				elif (casilla == "C"):
+				elif casilla == "C":
 					self.c.append(casilla)
-				elif (casilla == "N"):
+				elif casilla == "N":
 					self.nc.append(casilla)
 					
 	

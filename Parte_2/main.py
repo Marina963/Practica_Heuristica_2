@@ -3,6 +3,7 @@ from Ambulance import Ambulancia
 from Map import Map
 from constantes import *
 
+
 def main(input_file, num_h):
 	#Apertura de fichero
 	with open(input_file) as file:
@@ -10,27 +11,28 @@ def main(input_file, num_h):
 	
 	#Creacion del mapa y de la ambulancia
 	mapa = Map(tablero)
-	nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, [0, 0], 0, num_h, None)
-	nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, [len(mapa.c), len(mapa.nc)], 0, num_h, None)
+	nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, [0, 0], 0, None,  mapa.mapa)
+	nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, [len(mapa.c), len(mapa.nc)], 0,None, mapa.mapa)
 
 	camino = astar(nodo_inicial, nodo_final, num_h, mapa)
-	if (camino != False):
+	if camino != False:
 		print("El camino es: ")
 		for i in range(len(camino)):
 			print(camino[i])
 	else:
 		print("No existe camino")
 	return
-	
+
+
 def astar(nodo_inicial, nodo_final, num_h, mapa):
 	lista_abierta = [nodo_inicial]
 	lista_cerrada = []
 	exito = False
 	estado_final = nodo_final.get_state()
-	while (len(lista_abierta) > 0 and not exito):
+	while len(lista_abierta) > 0 and not exito:
 		nodo = lista_abierta.pop(0)
 		estado = nodo.get_state()
-		if (estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2]):
+		if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2]:
 			exito = True
 		else:
 			lista_cerrada.append(nodo)
@@ -77,6 +79,7 @@ def in_lista_cerrada(lista, data_s):
 			return True
 	return False
 
+
 def in_lista_abierta(lista, data_s):
 	for k in range(len(lista)):
 		iguales = k
@@ -99,21 +102,22 @@ def in_lista_abierta(lista, data_s):
 def generar_sucesores(nodo, num_h, mapa, predecesor):
 	lista_sucesores = []
 	for i in range(4):
-		sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.ocupacion_hospitales, nodo.coste, num_h, predecesor)
-		booleano = sucesor.mover(mapa, i, num_h)
+		sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.ocupacion_hospitales, nodo.coste,predecesor, nodo.tablero)
+		booleano = sucesor.mover(i, num_h, len(mapa.nc), len(mapa.c))
 		if booleano:
 			lista_sucesores.append(sucesor)
 	return lista_sucesores
 
+
 if __name__=="__main__":
-	if (len(sys.argv) != 3):
+	if len(sys.argv) != 3:
 		print("Main takes 2 arguments, but " + str(len(sys.argv) - 1) + " were given.")
 	else:
-		#try:
+		try:
 			arg_2 = int(sys.argv[2])
 			if arg_2 == 1 or arg_2 == 2:
 				main(sys.argv[1], arg_2)
 			else:
 				print("num_h takes values 1 or 2.")
-		#except:
+		except:
 			print("num_h must be a number.")
