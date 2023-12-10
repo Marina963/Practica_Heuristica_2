@@ -63,7 +63,8 @@ def main(file):
 
 
 def escr_salida(num_sol, sols, name):
-    keys = sols[0].keys()
+    if num_sols != 0:
+    	keys = sols[0].keys()
     with open(name + ".csv", "w") as salida:
         salida.write("\"N. Sol:\"," + str(num_sol) + "\n")
         for sol in sols:
