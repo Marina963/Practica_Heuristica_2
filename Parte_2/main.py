@@ -13,29 +13,30 @@ def main(input_file, num_h):
 
     #Creacion del mapa y de la ambulancia
     mapa = Map(tablero)
+
     nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, [0, 0], 0, None,  mapa.mapa)
     nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, [len(mapa.c), len(mapa.nc)], 0,None, mapa.mapa)
     
     inicio = time.time()
-    camino = astar(nodo_inicial, nodo_final, num_h, mapa)
+    salida = astar(nodo_inicial, nodo_final, num_h, mapa)
+    final = time.time()
     
-    if camino != False:
-        print("El camino es: ")
-        for i in range(len(camino)):
-            print(camino[i])
-    else:
+    if salida == False:
         print("No existe camino")
-    return
+        return False
+    
+    escribir_salida(salida[0], num_h, input_file)
+    escribir_estadisticas(salida, round(final - inicio, 2), input_file, num_h)
+    return True
 
 
 def astar(nodo_inicial, nodo_final, num_h, mapa):
+    """Función que se encarga de aplicar el algoritmo A*"""
     lista_abierta = [nodo_inicial]
     lista_cerrada = []
     exito = False
     estado_final = nodo_final.get_state()
     while len(lista_abierta) > 0 and not exito:
-        for i in lista_abierta:
-            print(i)
         nodo = lista_abierta.pop(0)
         estado = nodo.get_state()
         if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2]:
@@ -54,20 +55,20 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
                     else:
                         lista_abierta.append(s)
         lista_abierta = sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
-        print("#")
-        print(lista_cerrada[len(lista_cerrada) -1])
-        print("----------------------------")
+        #print(lista_cerrada[len(lista_cerrada) -1])
     if exito:
         if len(lista_cerrada) == 0:
             return nodo_inicial.pos
         predecesor = nodo.predecesor
-        camino = [nodo.pos]
+        camino = [(nodo.pos, nodo.casilla, nodo.bateria)]
         while predecesor:
-            camino.insert(0, (lista_cerrada[predecesor].pos, lista_cerrada[predecesor].ocupacion_hospitales))
-            predecesor = lista_cerrada[predecesor].predecesor
-        camino.insert(0, (lista_cerrada[0].pos))
-        print(len(lista_cerrada))
-        return camino
+            nodo_camino = lista_cerrada[predecesor]
+            camino.insert(0, ((nodo_camino.pos, nodo_camino.casilla, nodo_camino.bateria)))
+            predecesor = nodo_camino.predecesor
+        camino.insert(0, (nodo.pos, nodo.casilla, nodo.bateria))
+        return (camino, len(lista_cerrada), nodo.coste)
+        
+    #Si no hay solución, devuelve False   
     return False
 
 
@@ -128,16 +129,38 @@ def generar_sucesores(nodo, num_h, mapa, predecesor):
             lista_sucesores.append(sucesor)
     return lista_sucesores
 
+def escribir_salida(camino, num_h, input_file):
+    index_of_dot = input_file.index(".")
+    name = input_file[0:index_of_dot] + "-" + str(num_h) + ".output"
+    
+    with open(name, "w") as file:
+        for path in camino:
+            linea = str(tuple(path[0])) + ":" + path[1] + ":" + str(path[2]) + "\n"
+            file.write(linea)
+    return
 
+def escribir_estadisticas(salida, tiempo, input_file, num_h):
+    camino = salida[0]
+    nodos = salida[1]
+    index_of_dot = input_file.index(".")
+    name = input_file[0:index_of_dot] + "-" + str(num_h) + ".stat"
+    
+    with open(name, "w") as file:
+        file.write("Tiempo total: " + str(tiempo) + "\n")
+        file.write("Coste total: " + str(salida[2]) + "\n")
+        file.write("Longitud del plan: " + str(len(camino) -1) + "\n")
+        file.write("Nodos expandidos: " + str(nodos) + "\n")
+    return
+    
 if __name__=="__main__":
     if len(sys.argv) != 3:
         print("Main takes 2 arguments, but " + str(len(sys.argv) - 1) + " were given.")
     else:
-        #try:
+        try:
             arg_2 = int(sys.argv[2])
             if arg_2 == 1 or arg_2 == 2:
                 main(sys.argv[1], arg_2)
             else:
                 print("num_h takes values 1 or 2.")
-        #except:
+        except ValueError:
             print("num_h must be a number.")
