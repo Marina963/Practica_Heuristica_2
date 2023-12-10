@@ -34,8 +34,6 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
     exito = False
     estado_final = nodo_final.get_state()
     while len(lista_abierta) > 0 and not exito:
-        for i in lista_abierta:
-            print(i)
         nodo = lista_abierta.pop(0)
         estado = nodo.get_state()
         if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2]:
@@ -54,9 +52,6 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
                     else:
                         lista_abierta.append(s)
         lista_abierta = sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
-        print("#")
-        print(lista_cerrada[len(lista_cerrada) -1])
-        print("----------------------------")
     if exito:
         if len(lista_cerrada) == 0:
             return nodo_inicial.pos
@@ -106,14 +101,15 @@ def in_lista_abierta(lista, data_s):
                 if dato_s != dato_d:
                     iguales = -1
             else:
-                for j in range(len(dato_s)):
-                    if len(dato_s) != len(dato_d):
-                        iguales = -1            
-                    elif type(dato_s[j]) == list: 
-                        if dato_s[j][0] != dato_d[j][0] or dato_s[j][1] != dato_d[j][1]:
-                            iguales = -1
-                    elif dato_s[j] != dato_d[j]:
-                        iguales = -1
+                if len(dato_s) != len(dato_d):
+                    iguales = -1            
+                else:
+                	for j in range(len(dato_s)):
+		                if type(dato_s[j]) == list: 
+		                    if dato_s[j][0] != dato_d[j][0] or dato_s[j][1] != dato_d[j][1]:
+		                        iguales = -1
+		                elif dato_s[j] != dato_d[j]:
+		                    iguales = -1
         if iguales != -1:
             return iguales
     return -1
@@ -122,7 +118,7 @@ def in_lista_abierta(lista, data_s):
 def generar_sucesores(nodo, num_h, mapa, predecesor):
     lista_sucesores = []
     for i in range(4):
-        sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.ocupacion_hospitales, nodo.coste,predecesor, nodo.mapa.mapa)
+        sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.ocupacion_hospitales, nodo.coste, predecesor, nodo.mapa.mapa)
         booleano = sucesor.mover(i, num_h, len(mapa.nc), len(mapa.c))
         if booleano:
             lista_sucesores.append(sucesor)

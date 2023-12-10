@@ -28,6 +28,7 @@ class Ambulancia:
 		return True
 
 	def _h_1(self):
+		minimo = math.inf
 		if len(self.mapa.nc) != 0 and capacidad_max[0] > len(self.plazas_nc):
 			minimo = self.find_min(self.mapa.nc)
 		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
@@ -36,8 +37,9 @@ class Ambulancia:
 			if len(self.plazas_nc) > 0:
 				min_2 = self.find_min(self.mapa.nc)
 			minimo = min(min_1, min_2)
-		elif capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
-			minimo = self.find_min(self.mapa.h_cc)
+		if capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
+			minimo_local = self.find_min(self.mapa.h_cc)
+			minimo = min(minimo, minimo_local)
 		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
 			minimo = self.find_min(self.mapa.h_nc)
 		else:
@@ -125,9 +127,9 @@ class Ambulancia:
 			bateria_gastada = 1
 		if self.bateria - bateria_gastada < 0:
 			return False
-		return casilla
+		return True
 
-	def _efectos(self, operacion, num_h,nc, c):
+	def _efectos(self, operacion, num_h, nc, c):
 		"""Efectos"""
 		#Mira que tipo de casilla es a la que se mueve
 		match operacion:
@@ -184,5 +186,4 @@ class Ambulancia:
 		#Calcular la f(n)
 		self.coste += bateria_gastada
 		self.evaluacion = self.heuristica + self.coste
-		#Cambiar la posicion
 
