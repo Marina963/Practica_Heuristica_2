@@ -33,8 +33,6 @@ class Map:
 				elif casilla == "CN":
 					self.h_nc.append([i, j])
 
-					
-	
 	def __str__(self):
 		string = ""
 		for row in self.mapa:

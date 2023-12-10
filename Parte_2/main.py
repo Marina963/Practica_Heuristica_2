@@ -15,9 +15,10 @@ def main(input_file, num_h):
     mapa = Map(tablero)
     nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, [0, 0], 0, None,  mapa.mapa)
     nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, [len(mapa.c), len(mapa.nc)], 0,None, mapa.mapa)
+    
     inicio = time.time()
     camino = astar(nodo_inicial, nodo_final, num_h, mapa)
-    print(time.time() - inicio)
+    
     if camino != False:
         print("El camino es: ")
         for i in range(len(camino)):
@@ -33,6 +34,8 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
     exito = False
     estado_final = nodo_final.get_state()
     while len(lista_abierta) > 0 and not exito:
+        for i in lista_abierta:
+            print(i)
         nodo = lista_abierta.pop(0)
         estado = nodo.get_state()
         if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2]:
@@ -50,7 +53,10 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
                             lista_abierta[pos] = s
                     else:
                         lista_abierta.append(s)
-            sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
+        lista_abierta = sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
+        print("#")
+        print(lista_cerrada[len(lista_cerrada) -1])
+        print("----------------------------")
     if exito:
         if len(lista_cerrada) == 0:
             return nodo_inicial.pos
@@ -60,6 +66,7 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
             camino.insert(0, (lista_cerrada[predecesor].pos, lista_cerrada[predecesor].ocupacion_hospitales))
             predecesor = lista_cerrada[predecesor].predecesor
         camino.insert(0, (lista_cerrada[0].pos))
+        print(len(lista_cerrada))
         return camino
     return False
 
@@ -76,7 +83,12 @@ def in_lista_cerrada(lista, data_s):
                     iguales = False
             else:
                 for j in range(len(dato_s)):
-                    if len(dato_s) != len(dato_d) or dato_s[j] != dato_d[j]:
+                    if len(dato_s) != len(dato_d):
+                        iguales = False            
+                    elif type(dato_s[j]) == list: 
+                        if dato_s[j][0] != dato_d[j][0] or dato_s[j][1] != dato_d[j][1]:
+                            iguales = False
+                    elif dato_s[j] != dato_d[j]:
                         iguales = False
         if iguales:
             return True
@@ -95,7 +107,12 @@ def in_lista_abierta(lista, data_s):
                     iguales = -1
             else:
                 for j in range(len(dato_s)):
-                    if len(dato_s) != len(dato_d) or dato_s[j] != dato_d[j]:
+                    if len(dato_s) != len(dato_d):
+                        iguales = -1            
+                    elif type(dato_s[j]) == list: 
+                        if dato_s[j][0] != dato_d[j][0] or dato_s[j][1] != dato_d[j][1]:
+                            iguales = -1
+                    elif dato_s[j] != dato_d[j]:
                         iguales = -1
         if iguales != -1:
             return iguales

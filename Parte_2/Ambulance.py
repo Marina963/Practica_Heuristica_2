@@ -18,9 +18,8 @@ class Ambulancia:
 		self.mapa = Map(tablero)
 
 
-
 	def __str__(self):
-		return str(self.pos)
+		return str(self.pos) + " " + str(self.plazas_c) + " " + str(self.plazas_nc) + " " + str(self.ocupacion_hospitales) + " " + str(self.mapa.c) + " " + str(self.mapa.nc) + " " + str(self.evaluacion) 
 
 	def mover(self, operacion, num_h, nc, c):
 		if not self._precondiciones(operacion):
@@ -42,7 +41,6 @@ class Ambulancia:
 		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
 			minimo = self.find_min(self.mapa.h_nc)
 		else:
-
 			minimo = self.find_min([self.mapa.parking])
 		return minimo
 
@@ -50,7 +48,6 @@ class Ambulancia:
 		mininimo = math.inf
 		i = 0
 		while i < len(list):
-			# print(self.lista_nc)
 			dist = abs(int(self.pos[0]) - int(list[i][0])) + abs(int(self.pos[1]) - int(list[i][1]))
 			if dist < mininimo:
 				mininimo = dist
