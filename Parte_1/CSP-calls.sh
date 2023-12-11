@@ -12,7 +12,8 @@ do
 	if [[ $eachfile != *$csv* ]]; then
 		path_to_file='./CSP-test/'$eachfile
 		echo -e "$eachfile ${RED}[[Launched]]${NC}"
-		python3 main.py $path_to_file
+		python3 CSPParking.py $path_to_file
 		echo -e "$eachfile ${GREEN}[[Executed]]${NC}" 
+		echo "######"
 	fi
 done

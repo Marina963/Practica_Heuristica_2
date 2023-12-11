@@ -1,4 +1,4 @@
-from constantes import *
+from Constantes import *
 import math
 from Map import Map
 
@@ -72,8 +72,8 @@ class Ambulancia:
 		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
 			min_1 = self.dist_manhattan(self.mapa.c)
 			min_2 = math.inf
-			#if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
-			#	min_2 = self.dist_manhattan(self.mapa.h_nc)
+			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
+				min_2 = self.dist_manhattan(self.mapa.h_nc)
 			minimo = min(min_1, min_2)
 		elif capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
 			minimo = self.dist_manhattan(self.mapa.h_cc)

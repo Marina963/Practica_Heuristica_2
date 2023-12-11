@@ -2,7 +2,7 @@ import math
 import sys
 from Ambulance import Ambulancia
 from Map import Map
-from constantes import *
+from Constantes import *
 import time
 
 
@@ -55,10 +55,9 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
                     else:
                         lista_abierta.append(s)
         lista_abierta = sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
-        #print(lista_cerrada[len(lista_cerrada) -1])
     if exito:
         if len(lista_cerrada) == 0:
-            return nodo_inicial.pos
+            return ([(nodo_inicial.pos, "P", 50)], 0, 0)
         predecesor = nodo.predecesor
         camino = [(nodo.pos, nodo.casilla, nodo.bateria)]
         while predecesor:
@@ -130,9 +129,17 @@ def generar_sucesores(nodo, num_h, mapa, predecesor):
     return lista_sucesores
 
 def escribir_salida(camino, num_h, input_file):
-    index_of_dot = input_file.index(".")
-    name = input_file[0:index_of_dot] + "-" + str(num_h) + ".output"
-    
+    input_name = input_file 
+    try:
+        index_of_directory = input_name.index("/")
+        while 1:
+            input_name = input_name[index_of_directory +1: -1]
+            index_of_directory = input_name.index("/")
+    except ValueError:
+        index_of_dot = input_name.index(".")      
+    name = input_name[0:index_of_dot] + "-" + str(num_h) + ".output"
+    name = "ASTAR-test/" + name
+      
     with open(name, "w") as file:
         for path in camino:
             linea = str(tuple(path[0])) + ":" + path[1] + ":" + str(path[2]) + "\n"
@@ -142,9 +149,18 @@ def escribir_salida(camino, num_h, input_file):
 def escribir_estadisticas(salida, tiempo, input_file, num_h):
     camino = salida[0]
     nodos = salida[1]
-    index_of_dot = input_file.index(".")
-    name = input_file[0:index_of_dot] + "-" + str(num_h) + ".stat"
+    input_name = input_file
     
+    try:
+        index_of_directory = input_name.index("/")
+        while 1:
+            input_name = input_name[index_of_directory + 1:-1] 
+            index_of_directory = input_name.index("/")
+    except ValueError:            
+        index_of_dot = input_name.index(".")
+    name = input_name[0:index_of_dot] + "-" + str(num_h) + ".stat" 
+    name = "ASTAR-test/" + name
+   
     with open(name, "w") as file:
         file.write("Tiempo total: " + str(tiempo) + "\n")
         file.write("Coste total: " + str(salida[2]) + "\n")
