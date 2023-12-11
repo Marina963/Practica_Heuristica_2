@@ -28,25 +28,25 @@ class Ambulancia:
 
 	def dist_manhattan(self, lista) -> int:
 		"""Función que devuelve la distancia Manhattan mínima entre el estado y una lista de posiciones"""
-		mininimo = math.inf
+		minimo = math.inf
 		i = 0
 		while i < len(lista):
 			dist = abs(int(self.pos[0]) - int(lista[i][0])) + abs(int(self.pos[1]) - int(lista[i][1]))
-			if dist < mininimo:
-				mininimo = dist
+			if dist < minimo:
+				minimo = dist
 			i += 1
-		return mininimo
+		return minimo
 	
 	def dist_euclidea(self, lista) -> int:
 		"""Función que devuelve la distancia Euclidea mínima entre el estado y una lista de posiciones"""
-		mininimo = math.inf
+		minimo = math.inf
 		i = 0
 		while i < len(lista):
 			dist = math.sqrt((int(self.pos[0]) - int(lista[i][0]))**2 + (int(self.pos[1]) - int(lista[i][1]))**2)
-			if dist < mininimo:
-				mininimo = dist
+			if dist < minimo:
+				minimo = dist
 			i += 1
-		return mininimo
+		return minimo
 
 		
 	def get_state(self) -> list:
@@ -72,8 +72,8 @@ class Ambulancia:
 		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
 			min_1 = self.dist_manhattan(self.mapa.c)
 			min_2 = math.inf
-			if len(self.plazas_nc) > 0:
-				min_2 = self.dist_manhattan(self.mapa.nc)
+			#if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
+			#	min_2 = self.dist_manhattan(self.mapa.h_nc)
 			minimo = min(min_1, min_2)
 		elif capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
 			minimo = self.dist_manhattan(self.mapa.h_cc)
@@ -90,8 +90,8 @@ class Ambulancia:
 		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
 			min_1 = self.dist_euclidea(self.mapa.c)
 			min_2 = math.inf
-			if len(self.plazas_nc) > 0:
-				min_2 = self.dist_euclidea(self.mapa.nc)
+			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
+				min_2 = self.dist_euclidea(self.mapa.h_nc)
 			minimo = min(min_1, min_2)
 		elif capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
 			minimo = self.dist_euclidea(self.mapa.h_cc)
