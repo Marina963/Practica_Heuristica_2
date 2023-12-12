@@ -56,22 +56,17 @@ class Ambulancia:
 		return [self.pos, self.plazas_c, self.bateria, self.plazas_nc, self.mapa.c, self.mapa.nc]
 	
 	def get_hashable_data(self, num_cols) -> list:
-		hashable = [self.pos[0]*num_cols + self.pos[1]]
-		pos = 1
+		hashable = ""
+		hashable = str(self.pos[0]*num_cols + self.pos[1])
 		for i in self.plazas_c:
-			hashable.insert(pos, i)
-			pos += 1
+			hashable += i
 		for i in self.plazas_nc:
-			hashable.insert(pos, i)
-			pos += 1
-		hashable += [self.bateria]
-		pos += 1
+			hashable += i
+		hashable += str(self.bateria)
 		for i in self.mapa.c:
-			hashable.insert(pos, i[0]*num_cols + i[1])
-			pos += 1
+			hashable += str(i[0]*num_cols + i[1])
 		for i in self.mapa.nc:
-			hashable.insert(pos, i[0]*num_cols + i[1])
-			pos += 1
+			hashable += str(i[0]*num_cols + i[1])
 		return hashable
 	
 	#Funciones principales
@@ -115,7 +110,7 @@ class Ambulancia:
 		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
 			minimo = self.dist_euclidea(self.mapa.h_nc)
 		else:
-			minimo = self.dist_euclidea([self.mapa.parking])
+			minimo = self.dist_euclidea([self.mapa.parking]) - self.coste
 		return minimo
 
 	
