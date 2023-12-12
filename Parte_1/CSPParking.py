@@ -40,9 +40,15 @@ def main(file):
     problem = Problem()
     for v in variables:
         if v.freezer == "C":
-            problem.addVariable(str(v), dominio_electrico)
+            try:
+                problem.addVariable(str(v), dominio_electrico)
+            except:
+                return escr_salida(0, 0, file)
         else:
-            problem.addVariable(str(v), dominio_no_electrico)
+            try:
+                problem.addVariable(str(v), dominio_no_electrico)
+            except:
+                return  escr_salida(0, 0, file)
 
     problem.addConstraint(AllDifferentConstraint())
     for i in variables:
@@ -67,23 +73,24 @@ def escr_salida(num_sol, sols, name):
     	keys = sols[0].keys()
     with open(name + ".csv", "w") as salida:
         salida.write("\"N. Sol:\"," + str(num_sol) + "\n")
-        for sol in sols:
-            matriz = []
-            for f in range(filas):
-                row = []
-                for c in range(columnas):
-                    row.append("-")
-                matriz.append(row)
-            for k in keys:
-                matriz[sol[k][0] - 1][sol[k][1] - 1] = k
-            for row in range(len(matriz)):
-                for col in range(len(matriz[row])):
-                    salida.write("\"" + matriz[row][col] + "\"")
-                    if col < len(matriz[row]) - 1:
-                        salida.write(",")
-                    else:
-                        salida.write("\n")
-            salida.write("\n")
+        if num_sol != 0:
+            for sol in sols:
+                matriz = []
+                for f in range(filas):
+                    row = []
+                    for c in range(columnas):
+                        row.append("-")
+                    matriz.append(row)
+                for k in keys:
+                    matriz[sol[k][0] - 1][sol[k][1] - 1] = k
+                for row in range(len(matriz)):
+                    for col in range(len(matriz[row])):
+                        salida.write("\"" + matriz[row][col] + "\"")
+                        if col < len(matriz[row]) - 1:
+                            salida.write(",")
+                        else:
+                            salida.write("\n")
+                salida.write("\n")
 
 def adyacencia(*variables):
     for vehiculo in variables:
