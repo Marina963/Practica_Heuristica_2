@@ -1,22 +1,23 @@
 class Map:
 	def __init__(self, tablero):
-		self.mapa = []
+		self.mapa = {}
 		self.parking = []
 		self.c = []
 		self.nc = []
 		self.h_cc = []
 		self.h_nc = []
-		self._inicializar_mapa(tablero)
+		if type(tablero) == list:
+			self._inicializar_mapa(tablero)
+		else:
+			for i in tablero:
+				self.mapa[i] = tablero[i].copy()
 		self._encuentra_todo()
 		
 	def _inicializar_mapa(self, tablero):
 		for row in range(len(tablero)):
-			if type(tablero[row]) == str:
-				lista = tablero[row].split(";")
-				lista[-1] = lista[-1][0:-1]
-			else:
-				lista = tablero[row].copy()
-			self.mapa.append(lista)
+			self.mapa[row] = {}
+			for col in range(len(tablero[row])):
+				self.mapa[row][col] = tablero[row][col]
 	
 	def _encuentra_todo(self):
 		for i in range(len(self.mapa)):
@@ -35,8 +36,9 @@ class Map:
 
 	def __str__(self):
 		string = ""
-		for row in self.mapa:
-			string += str(row)
+		for row in self.mapa.keys():
+			for col in self.mapa[row].keys():
+				string += self.mapa[row][col] + " "
 			string += "\n"
 		return string
 					

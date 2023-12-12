@@ -4,13 +4,11 @@ from Map import Map
 
 
 class Ambulancia:
-	def __init__(self, pos_inicial, plazas_c, plazas_nc, bateria, ocupacion_hospitales, coste, predecesor_indice, tablero):
+	def __init__(self, pos_inicial, plazas_c, plazas_nc, bateria, coste, predecesor_indice, tablero):
 		#Parámetros que distinguen al estado
 		self.pos = pos_inicial.copy()
 		self.plazas_c = plazas_c.copy()
 		self.plazas_nc = plazas_nc.copy()
-		#Primero c y luego n
-		self.ocupacion_hospitales = ocupacion_hospitales.copy()
 		#Parámetros relacionados con el coste y la heurística
 		self.bateria = bateria
 		self.coste = coste
@@ -24,7 +22,7 @@ class Ambulancia:
 	#Funciones auxiliares
 	def __str__(self) -> str:
 		"""Función auxiliar que permite escribir una ambulancia"""
-		return str(self.pos) + " " + str(self.plazas_c) + " " + str(self.plazas_nc) + " " + str(self.ocupacion_hospitales) + " " + str(self.mapa.c) + " " + str(self.mapa.nc) + " " + str(self.evaluacion) 
+		return str(self.pos) + " " + str(self.plazas_c) + " " + str(self.plazas_nc) + " " + str(self.mapa.c) + " " + str(self.mapa.nc) + " " + str(self.evaluacion) 
 
 	def dist_manhattan(self, lista) -> int:
 		"""Función que devuelve la distancia Manhattan mínima entre el estado y una lista de posiciones"""
@@ -51,18 +49,37 @@ class Ambulancia:
 		
 	def get_state(self) -> list:
 		"""Función que devuelve el estado, usada para ver si el estado es final"""
-		return [self.pos, self.ocupacion_hospitales[0], self.ocupacion_hospitales[1]]
+		return [self.pos, self.mapa.c, self.mapa.nc, self.plazas_c, self.plazas_nc]
 
 	def get_data(self) -> list:
 		"""Función que proporciona información sobre el estado, usada para evitar repeticiones en la lista cerrada"""
-		return [self.pos, self.ocupacion_hospitales, self.plazas_c, self.plazas_nc]
-		
+		return [self.pos, self.plazas_c, self.bateria, self.plazas_nc, self.mapa.c, self.mapa.nc]
+	
+	def get_hashable_data(self, num_cols) -> list:
+		hashable = [self.pos[0]*num_cols + self.pos[1]]
+		pos = 1
+		for i in self.plazas_c:
+			hashable.insert(pos, i)
+			pos += 1
+		for i in self.plazas_nc:
+			hashable.insert(pos, i)
+			pos += 1
+		hashable += [self.bateria]
+		pos += 1
+		for i in self.mapa.c:
+			hashable.insert(pos, i[0]*num_cols + i[1])
+			pos += 1
+		for i in self.mapa.nc:
+			hashable.insert(pos, i[0]*num_cols + i[1])
+			pos += 1
+		return hashable
+	
 	#Funciones principales
-	def mover(self, operacion: int, num_h: int, nc: int, c: int) -> bool:
+	def mover(self, operacion: int, num_h: int) -> bool:
 		"""Función que evalúa las precondiciones y ejecuta los efectos si procede"""
 		if not self._precondiciones(operacion):
 			return False
-		self._efectos(operacion, num_h, nc, c)
+		self._efectos(operacion, num_h)
 		return True
 
 	def _h_1(self) -> int:
@@ -75,12 +92,12 @@ class Ambulancia:
 			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
 				min_2 = self.dist_manhattan(self.mapa.h_nc)
 			minimo = min(min_1, min_2)
-		elif capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
+		elif capacidad_max[1] == len(self.plazas_c) and self.plazas_c[0] == "c" or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0 and self.plazas_c[0]  == "c"):
 			minimo = self.dist_manhattan(self.mapa.h_cc)
 		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
 			minimo = self.dist_manhattan(self.mapa.h_nc)
 		else:
-			minimo = self.dist_manhattan([self.mapa.parking])
+			minimo = self.dist_manhattan([self.mapa.parking]) - self.coste
 		return minimo
 
 	def _h_2(self) -> int:
@@ -93,7 +110,7 @@ class Ambulancia:
 			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
 				min_2 = self.dist_euclidea(self.mapa.h_nc)
 			minimo = min(min_1, min_2)
-		elif capacidad_max[1] == len(self.plazas_c) or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0):
+		elif capacidad_max[1] == len(self.plazas_c) and self.plazas_c[0] == "c" or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0 and self.plazas_c[0]  == "c"):
 			minimo = self.dist_euclidea(self.mapa.h_cc)
 		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
 			minimo = self.dist_euclidea(self.mapa.h_nc)
@@ -147,7 +164,7 @@ class Ambulancia:
 		return True
 
 
-	def _efectos(self, operacion, num_h,nc, c):
+	def _efectos(self, operacion, num_h):
 		"""Efectos"""
 		#Mueve la ambulancia
 		match operacion:
@@ -171,30 +188,26 @@ class Ambulancia:
 		#Mira que tipo de casilla es a la que se mueve
 		match self.casilla:
 			case "N":
-				if len(self.plazas_nc) < capacidad_max[0]:
+				if len(self.plazas_nc) < capacidad_max[0] and (len(self.plazas_c) == 0 or self.plazas_c[0] != "c"):
 					self.plazas_nc.append("nc")
+					self.mapa.nc.remove([casilla_pos[0], casilla_pos[1]])
 					self.mapa.mapa[casilla_pos[0]][casilla_pos[1]] = "1"
-				elif len(self.plazas_c) == 0 or ("c" not in self.plazas_c and len(self.plazas_c) < capacidad_max[1]) or len(self.ocupacion_hospitales) == c:
+				elif ("c" not in self.plazas_c and len(self.plazas_c) < capacidad_max[1]):
 					self.plazas_c.append("nc")
+					self.mapa.nc.remove([casilla_pos[0], casilla_pos[1]])
 					self.mapa.mapa[casilla_pos[0]][casilla_pos[1]] = "1"
 			case "C":
 				if (len(self.plazas_c) < capacidad_max[1] ) and "nc" not in self.plazas_c:
-					if self.plazas_nc == capacidad_max[0] or nc == self.ocupacion_hospitales[1] + len(self.plazas_nc):
 						self.plazas_c.append("c")
+						self.mapa.c.remove([casilla_pos[0], casilla_pos[1]])
 						self.mapa.mapa[casilla_pos[0]][casilla_pos[1]] = "1"
 			case "CC":
-				while len(self.plazas_c) != 0:
-					self.plazas_c.pop(0)
-					self.ocupacion_hospitales[0] += 1
+				self.plazas_c.clear()
 			case "CN":
 				if len(self.plazas_c) > 0 and "nc" in self.plazas_c:
-					while len(self.plazas_c) != 0:
-						self.plazas_c.pop(0)
-						self.ocupacion_hospitales[1] += 1
+					self.plazas_c.clear()
 				if len(self.plazas_c) == 0:
-					while len(self.plazas_nc) != 0:
-						self.plazas_nc.pop(0)
-						self.ocupacion_hospitales[1] += 1
+					self.plazas_nc.clear()
 			case "P":
 				self.bateria = bateria_max
 		

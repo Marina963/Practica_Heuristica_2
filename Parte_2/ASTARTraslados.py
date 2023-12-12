@@ -3,20 +3,29 @@ import sys
 from Ambulance import Ambulancia
 from Map import Map
 from Constantes import *
+from collections import Counter
 import time
 
 
 def main(input_file, num_h):
     #Apertura de fichero
     with open(input_file) as file:
-        tablero = file.readlines()
-
+        tablero_leido = file.readlines()
+    
+    tablero = []
+    for i in range(len(tablero_leido)):
+        linea = tablero_leido[i].split(";")
+        linea[len(linea) -1] = linea[len(linea) -1][0:-1]
+        tablero.append(linea)
+        
+    
     #Creacion del mapa y de la ambulancia
     mapa = Map(tablero)
-
-    nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, [0, 0], 0, None,  mapa.mapa)
-    nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, [len(mapa.c), len(mapa.nc)], 0,None, mapa.mapa)
-    
+  
+    nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, 0, None,  mapa.mapa)
+    nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, 0,None, mapa.mapa)
+    nodo_final.mapa.c, nodo_final.mapa.nc = [], [] 
+     
     inicio = time.time()
     salida = astar(nodo_inicial, nodo_final, num_h, mapa)
     final = time.time()
@@ -33,28 +42,31 @@ def main(input_file, num_h):
 def astar(nodo_inicial, nodo_final, num_h, mapa):
     """Función que se encarga de aplicar el algoritmo A*"""
     lista_abierta = [nodo_inicial]
-    lista_cerrada = []
+    lista_cerrada = {}
     exito = False
     estado_final = nodo_final.get_state()
-    while len(lista_abierta) > 0 and not exito:
+    num_cols = len(mapa.mapa[0])
+    d = 0
+    while not exito and len(lista_abierta) >  0:
         nodo = lista_abierta.pop(0)
         estado = nodo.get_state()
-        if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2]:
+        d += 1
+        if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2] and estado[3] == estado_final[3] and estado[4] == estado_final[4]:
             exito = True
         else:
-            lista_cerrada.append(nodo)
-            conjunto_s = generar_sucesores(nodo, num_h, mapa, len(lista_cerrada) - 1)
-            for i in range(len(conjunto_s)):
-                s = conjunto_s[i]
-                data_s = s.get_data()
-                if not in_lista_cerrada(lista_cerrada, data_s):
-                    pos = in_lista_abierta(lista_abierta, data_s)
+            lista_cerrada[len(lista_cerrada)] = nodo
+            conjunto_s = generar_sucesores(nodo, num_h, len(lista_cerrada) - 1)
+            for s in conjunto_s:
+                data_s = s.get_hashable_data(num_cols)
+                if not in_lista_cerrada(lista_cerrada, data_s, num_cols):
+                    pos = in_lista_abierta(lista_abierta, data_s, num_cols)
                     if pos != -1:
                         if s.evaluacion < lista_abierta[pos].evaluacion:
                             lista_abierta[pos] = s
                     else:
                         lista_abierta.append(s)
         lista_abierta = sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
+       
     if exito:
         if len(lista_cerrada) == 0:
             return ([(nodo_inicial.pos, "P", 50)], 0, 0)
@@ -70,60 +82,29 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
     #Si no hay solución, devuelve False   
     return False
 
-
-def in_lista_cerrada(lista, data_s):
-    for dato in lista:
-        iguales = True
-        data_d = dato.get_data()
-        for i in range(len(data_s)):
-            dato_s = data_s[i]
-            dato_d = data_d[i]
-            if type(dato_s) == int:
-                if dato_s != dato_d:
-                    iguales = False
-            else:
-                for j in range(len(dato_s)):
-                    if len(dato_s) != len(dato_d):
-                        iguales = False            
-                    elif type(dato_s[j]) == list: 
-                        if dato_s[j][0] != dato_d[j][0] or dato_s[j][1] != dato_d[j][1]:
-                            iguales = False
-                    elif dato_s[j] != dato_d[j]:
-                        iguales = False
+def in_lista_cerrada(lista, data_s, num_cols):
+    for d in lista:
+        data_d = lista[d].get_hashable_data(num_cols)
+        iguales = Counter(data_s) == Counter(data_d)
         if iguales:
             return True
     return False
 
 
-def in_lista_abierta(lista, data_s):
-    for k in range(len(lista)):
-        iguales = k
-        data_d = lista[k].get_data()
-        for i in range(len(data_s)):
-            dato_s = data_s[i]
-            dato_d = data_d[i]
-            if type(dato_s) == int:
-                if dato_s != dato_d:
-                    iguales = -1
-            else:
-                for j in range(len(dato_s)):
-                    if len(dato_s) != len(dato_d):
-                        iguales = -1            
-                    elif type(dato_s[j]) == list: 
-                        if dato_s[j][0] != dato_d[j][0] or dato_s[j][1] != dato_d[j][1]:
-                            iguales = -1
-                    elif dato_s[j] != dato_d[j]:
-                        iguales = -1
-        if iguales != -1:
-            return iguales
+def in_lista_abierta(lista, data_s, num_cols):
+    for d in range(len(lista)):
+        data_d = lista[d].get_hashable_data(num_cols)
+        iguales = Counter(data_s) == Counter(data_d)
+        if iguales:
+            return d
     return -1
 
 
-def generar_sucesores(nodo, num_h, mapa, predecesor):
+def generar_sucesores(nodo, num_h, predecesor):
     lista_sucesores = []
     for i in range(4):
-        sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.ocupacion_hospitales, nodo.coste,predecesor, nodo.mapa.mapa)
-        booleano = sucesor.mover(i, num_h, len(mapa.nc), len(mapa.c))
+        sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.coste, predecesor, nodo.mapa.mapa)
+        booleano = sucesor.mover(i, num_h)
         if booleano:
             lista_sucesores.append(sucesor)
     return lista_sucesores
