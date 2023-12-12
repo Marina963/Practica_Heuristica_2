@@ -64,7 +64,6 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
                 if not in_lista_cerrada(lista_cerrada, data_s):
                     if in_lista_abierta(lista_abierta, s, data_s):
                         lista_abierta = dict(sorted(lista_abierta.items(), key=lambda nodo: nodo[1].evaluacion))
-    print(contador)
     if exito:
         if len(lista_cerrada) == 0:
             return ([(nodo_inicial.pos, "P", 50)], 0, 0)

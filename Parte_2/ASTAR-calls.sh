@@ -3,10 +3,10 @@ RED='\033[0;31m'
 GREEN='\033[1;32m'
 NC='\033[0m'
 
+rm ASTAR-test/*.stat ASTAR-test/*.output
 files=`ls ./ASTAR-test`
 out='.csv'
 
-`rm -rf ./ASTAR-test/Stat ./ASTAR-test/Output`
 
 echo -e "${GREEN}Executing all test cases in ASTAR-test${NC}"
 
