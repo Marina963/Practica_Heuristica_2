@@ -46,6 +46,9 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
     lista_cerrada = {}
     exito = False
     estado_final = nodo_final.get_state()
+    
+    global contador
+    contador = 0
  
     while not exito and len(lista_abierta) >  0:
         nodo_hasheado = next(iter(lista_abierta))
@@ -61,7 +64,7 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
                 if not in_lista_cerrada(lista_cerrada, data_s):
                     if in_lista_abierta(lista_abierta, s, data_s):
                         lista_abierta = dict(sorted(lista_abierta.items(), key=lambda nodo: nodo[1].evaluacion))
-       
+    print(contador)
     if exito:
         if len(lista_cerrada) == 0:
             return ([(nodo_inicial.pos, "P", 50)], 0, 0)
@@ -86,15 +89,17 @@ def in_lista_cerrada(lista, data_s):
 
 
 def in_lista_abierta(lista, sucesor, data_s):
+    global contador
     try:
-    	aux = lista[data_s]
-    	if sucesor.evaluacion < aux[1]:
-    		lista[data_s] = sucesor
-    		return True
-    	return False
+        aux = lista[data_s]
+        if sucesor.evaluacion < aux.evaluacion:
+            lista[data_s] = sucesor
+            return True
+        contador += 1
+        return False
     except:
-    	lista[data_s] = sucesor
-    	return True
+        lista[data_s] = sucesor
+        return True
 
 
 def generar_sucesores(nodo, num_h, predecesor):
