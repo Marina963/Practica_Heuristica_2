@@ -41,31 +41,26 @@ def main(input_file, num_h):
 
 def astar(nodo_inicial, nodo_final, num_h, mapa):
     """Función que se encarga de aplicar el algoritmo A*"""
-    lista_abierta = [nodo_inicial]
+    num_cols = len(mapa.mapa[0])
+    lista_abierta = {nodo_inicial.get_hashable_data(num_cols): nodo_inicial}
     lista_cerrada = {}
     exito = False
     estado_final = nodo_final.get_state()
-    num_cols = len(mapa.mapa[0])
-    d = 0
+ 
     while not exito and len(lista_abierta) >  0:
-        nodo = lista_abierta.pop(0)
+        nodo_hasheado = next(iter(lista_abierta))
+        nodo = lista_abierta.pop(nodo_hasheado)
         estado = nodo.get_state()
-        d += 1
         if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2] and estado[3] == estado_final[3] and estado[4] == estado_final[4]:
             exito = True
         else:
-            lista_cerrada[len(lista_cerrada)] = nodo
-            conjunto_s = generar_sucesores(nodo, num_h, len(lista_cerrada) - 1)
+            lista_cerrada[nodo_hasheado] = nodo
+            conjunto_s = generar_sucesores(nodo, num_h, nodo_hasheado)
             for s in conjunto_s:
                 data_s = s.get_hashable_data(num_cols)
-                if not in_lista_cerrada(lista_cerrada, data_s, num_cols):
-                    pos = in_lista_abierta(lista_abierta, data_s, num_cols)
-                    if pos != -1:
-                        if s.evaluacion < lista_abierta[pos].evaluacion:
-                            lista_abierta[pos] = s
-                    else:
-                        lista_abierta.append(s)
-        lista_abierta = sorted(lista_abierta, key=lambda nodo: nodo.evaluacion)
+                if not in_lista_cerrada(lista_cerrada, data_s):
+                    if in_lista_abierta(lista_abierta, s, data_s):
+                        lista_abierta = dict(sorted(lista_abierta.items(), key=lambda nodo: nodo[1].evaluacion))
        
     if exito:
         if len(lista_cerrada) == 0:
@@ -82,22 +77,24 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
     #Si no hay solución, devuelve False   
     return False
 
-def in_lista_cerrada(lista, data_s, num_cols):
-    for d in lista:
-        data_d = lista[d].get_hashable_data(num_cols)
-        iguales = Counter(data_s) == Counter(data_d)
-        if iguales:
-            return True
-    return False
+def in_lista_cerrada(lista, data_s):
+	try:
+		aux = lista[data_s]
+		return True
+	except KeyError:
+		return False
 
 
-def in_lista_abierta(lista, data_s, num_cols):
-    for d in range(len(lista)):
-        data_d = lista[d].get_hashable_data(num_cols)
-        iguales = Counter(data_s) == Counter(data_d)
-        if iguales:
-            return d
-    return -1
+def in_lista_abierta(lista, sucesor, data_s):
+    try:
+    	aux = lista[data_s]
+    	if sucesor.evaluacion < aux[1]:
+    		lista[data_s] = sucesor
+    		return True
+    	return False
+    except:
+    	lista[data_s] = sucesor
+    	return True
 
 
 def generar_sucesores(nodo, num_h, predecesor):
@@ -111,6 +108,9 @@ def generar_sucesores(nodo, num_h, predecesor):
 
 def escribir_salida(camino, num_h, input_file):
     input_name = input_file 
+    
+    if len(camino) > 1:
+        camino.pop(1)
     try:
         index_of_directory = input_name.index("/")
         while 1:
