@@ -11,13 +11,12 @@ def main(input_file, num_h):
     #Apertura de fichero
     with open(input_file) as file:
         tablero_leido = file.readlines()
-    
     tablero = []
     for i in range(len(tablero_leido)):
         linea = tablero_leido[i].split(";")
-        linea[len(linea) -1] = linea[len(linea) -1][0:-1]
+        if "\n" in linea[len(linea) - 1]:
+            linea[len(linea) -1] = linea[len(linea) -1][0:-1]
         tablero.append(linea)
-        
     
     #Creacion del mapa y de la ambulancia
     mapa = Map(tablero)
@@ -74,8 +73,19 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
             camino.insert(0, ((nodo_camino.pos, nodo_camino.casilla, nodo_camino.bateria)))
             predecesor = nodo_camino.predecesor
         camino.insert(0, (nodo.pos, nodo.casilla, nodo.bateria))
+
+        for i in lista_cerrada.keys():
+            pre = lista_cerrada[i].predecesor
+            if pre != None:
+                #print(pre)
+                print(str(lista_cerrada[i].pos) + "-" + lista_cerrada[i].casilla + "-" + str(lista_cerrada[i].bateria) + "  " + str(lista_cerrada[pre].pos) + "-" + lista_cerrada[pre].casilla + "-" + str(lista_cerrada[pre].bateria))
+            else:
+                print("Nodo inicial: " + str(lista_cerrada[i].pos))
+                print("[nodo.pos], [precedesor.pos]")
+
+
         return (camino, len(lista_cerrada), nodo.coste)
-        
+
     #Si no hay solución, devuelve False   
     return False
 

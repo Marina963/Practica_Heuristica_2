@@ -38,7 +38,7 @@ class Map:
 		string = ""
 		for row in self.mapa.keys():
 			for col in self.mapa[row].keys():
-				string += self.mapa[row][col] + " "
+				string += self.mapa[row][col] + "#"
 			string += "\n"
 		return string
 					
