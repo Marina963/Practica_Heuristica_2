@@ -12,6 +12,7 @@ def main(input_file, num_h):
     with open(input_file) as file:
         tablero_leido = file.readlines()
     tablero = []
+    #Parser que separa por ";" y elimina el \n de la última línea siempre que haya
     for i in range(len(tablero_leido)):
         linea = tablero_leido[i].split(";")
         if "\n" in linea[len(linea) - 1]:
@@ -21,18 +22,22 @@ def main(input_file, num_h):
     #Creacion del mapa y de la ambulancia
     mapa = Map(tablero)
   
+    #Creación de los nodos iniciales y final
     nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, 0, None,  mapa.mapa)
     nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, 0,None, mapa.mapa)
     nodo_final.mapa.c, nodo_final.mapa.nc = [], [] 
      
+    #Llamada al A*
     inicio = time.time()
     salida = astar(nodo_inicial, nodo_final, num_h, mapa)
     final = time.time()
     
+    #Check de si el A* encuentra camino
     if salida == False:
         print("No existe camino")
         return False
     
+    #Escritura de los ficheros de salida
     escribir_salida(salida[0], num_h, input_file)
     escribir_estadisticas(salida, round(final - inicio, 2), input_file, num_h)
     return True
@@ -41,70 +46,63 @@ def main(input_file, num_h):
 def astar(nodo_inicial, nodo_final, num_h, mapa):
     """Función que se encarga de aplicar el algoritmo A*"""
     num_cols = len(mapa.mapa[0])
-    lista_abierta = {nodo_inicial.get_hashable_data(num_cols): nodo_inicial}
+    lista_abierta = {nodo_inicial.get_hashable_data: nodo_inicial}
     lista_cerrada = {}
     exito = False
     estado_final = nodo_final.get_state()
     
-    global contador
-    contador = 0
- 
     while not exito and len(lista_abierta) >  0:
         nodo_hasheado = next(iter(lista_abierta))
         nodo = lista_abierta.pop(nodo_hasheado)
         estado = nodo.get_state()
+        #Compara el estado al estado final
         if estado[0] == estado_final[0] and estado[1] == estado_final[1] and estado[2] == estado_final[2] and estado[3] == estado_final[3] and estado[4] == estado_final[4]:
             exito = True
         else:
-            lista_cerrada[nodo_hasheado] = nodo
+            #Inserta el nodo en la lista cerrada y genera los sucesores
+            lista_cerrada[nodo_hasheado] = {"pos":nodo.pos,"casilla":nodo.casilla,"bateria":nodo.bateria,"predecesor":nodo.predecesor}
             conjunto_s = generar_sucesores(nodo, num_h, nodo_hasheado)
+            del(nodo)
+            ordenar = False
             for s in conjunto_s:
                 data_s = s.get_hashable_data(num_cols)
+                #Checkea si está en la lista cerrada
                 if not in_lista_cerrada(lista_cerrada, data_s):
-                    if in_lista_abierta(lista_abierta, s, data_s):
-                        lista_abierta = dict(sorted(lista_abierta.items(), key=lambda nodo: nodo[1].evaluacion))
+                    #Checkea si está en la lista abierta
+                    res = in_lista_abierta(lista_abierta, s, data_s)
+                    if res:
+                        ordenar = True
+            #Ordena la lista si es necesario
+            if ordenar:
+                lista_abierta = dict(sorted(lista_abierta.items(), key=lambda nodo: nodo[1].evaluacion))
     if exito:
+        #Si el nodo final es el inicial
         if len(lista_cerrada) == 0:
             return ([(nodo_inicial.pos, "P", 50)], 0, 0)
         predecesor = nodo.predecesor
         camino = [(nodo.pos, nodo.casilla, nodo.bateria)]
         while predecesor:
             nodo_camino = lista_cerrada[predecesor]
-            camino.insert(0, ((nodo_camino.pos, nodo_camino.casilla, nodo_camino.bateria)))
-            predecesor = nodo_camino.predecesor
+            camino.insert(0, ((nodo_camino["pos"], nodo_camino["casilla"], nodo_camino["bateria"])))
+            predecesor = nodo_camino["predecesor"]
         camino.insert(0, (nodo.pos, nodo.casilla, nodo.bateria))
-
-        for i in lista_cerrada.keys():
-            pre = lista_cerrada[i].predecesor
-            if pre != None:
-                #print(pre)
-                print(str(lista_cerrada[i].pos) + "-" + lista_cerrada[i].casilla + "-" + str(lista_cerrada[i].bateria) + "  " + str(lista_cerrada[pre].pos) + "-" + lista_cerrada[pre].casilla + "-" + str(lista_cerrada[pre].bateria))
-            else:
-                print("Nodo inicial: " + str(lista_cerrada[i].pos))
-                print("[nodo.pos], [precedesor.pos]")
-
-
-        return (camino, len(lista_cerrada), nodo.coste)
-
-    #Si no hay solución, devuelve False   
+        return (camino, len(lista_cerrada), nodo.coste) 
     return False
 
 def in_lista_cerrada(lista, data_s):
 	try:
-		aux = lista[data_s]
+		lista[data_s]
 		return True
 	except KeyError:
 		return False
 
 
 def in_lista_abierta(lista, sucesor, data_s):
-    global contador
     try:
         aux = lista[data_s]
         if sucesor.evaluacion < aux.evaluacion:
             lista[data_s] = sucesor
             return True
-        contador += 1
         return False
     except:
         lista[data_s] = sucesor
@@ -116,13 +114,12 @@ def generar_sucesores(nodo, num_h, predecesor):
     for i in range(4):
         sucesor = Ambulancia(nodo.pos, nodo.plazas_c, nodo.plazas_nc, nodo.bateria, nodo.coste, predecesor, nodo.mapa.mapa)
         booleano = sucesor.mover(i, num_h)
-        if booleano:
-            lista_sucesores.append(sucesor)
+        booleano = booleano and not math.isinf(sucesor.evaluacion)
+        lista_sucesores.append(sucesor) if booleano else ""
     return lista_sucesores
 
 def escribir_salida(camino, num_h, input_file):
     input_name = input_file 
-    
     if len(camino) > 1:
         camino.pop(1)
     try:

@@ -24,49 +24,50 @@ class Ambulancia:
 		"""Función auxiliar que permite escribir una ambulancia"""
 		return str(self.pos) + " " + str(self.plazas_c) + " " + str(self.plazas_nc) + " " + str(self.mapa.c) + " " + str(self.mapa.nc) + " " + str(self.evaluacion) 
 
-	def dist_manhattan(self, lista) -> int:
+	def dist_manhattan(self, src, lista) -> int:
 		"""Función que devuelve la distancia Manhattan mínima entre el estado y una lista de posiciones"""
 		minimo = math.inf
-		i = 0
-		while i < len(lista):
-			dist = abs(int(self.pos[0]) - int(lista[i][0])) + abs(int(self.pos[1]) - int(lista[i][1]))
+		for i in range(len(lista)):
+			dist = abs(int(src[0]) - int(lista[i][0])) + abs(int(src[1]) - int(lista[i][1]))
 			if dist < minimo:
 				minimo = dist
-			i += 1
 		return minimo
 	
-	def dist_euclidea(self, lista) -> int:
+	def dist_euclidea(self, src, lista) -> int:
 		"""Función que devuelve la distancia Euclidea mínima entre el estado y una lista de posiciones"""
 		minimo = math.inf
-		i = 0
-		while i < len(lista):
-			dist = math.sqrt((int(self.pos[0]) - int(lista[i][0]))**2 + (int(self.pos[1]) - int(lista[i][1]))**2)
+		for i in range(len(lista)):
+			dist = math.sqrt((int(src[0]) - int(lista[i][0]))**2 + (int(src[1]) - int(lista[i][1]))**2)
 			if dist < minimo:
 				minimo = dist
-			i += 1
 		return minimo
 
 		
 	def get_state(self) -> list:
 		"""Función que devuelve el estado, usada para ver si el estado es final"""
-		return [self.pos, self.mapa.c, self.mapa.nc, self.plazas_c, self.plazas_nc]
+		return [self.mapa.nc, self.mapa.c, self.pos, self.plazas_c, self.plazas_nc]
 
 	def get_data(self) -> list:
 		"""Función que proporciona información sobre el estado, usada para evitar repeticiones en la lista cerrada"""
-		return [self.pos, self.plazas_c, self.bateria, self.plazas_nc, self.mapa.c, self.mapa.nc]
+		return (self.pos, self.plazas_c, self.bateria, self.plazas_nc, self.mapa.c, self.mapa.nc)
 	
 	def get_hashable_data(self, num_cols) -> list:
 		hashable = ""
-		hashable = str(self.pos[0]*num_cols + self.pos[1])
+		hashable = str(self.pos[0]*num_cols + self.pos[1]) + "-"
 		for i in self.plazas_c:
 			hashable += i
+		hashable += "-"
 		for i in self.plazas_nc:
 			hashable += i
+		hashable += "-"
 		hashable += str(self.bateria)
+		hashable += "-"
 		for i in self.mapa.c:
 			hashable += str(i[0]*num_cols + i[1])
+		hashable += "-"
 		for i in self.mapa.nc:
 			hashable += str(i[0]*num_cols + i[1])
+		hashable += "-"
 		return hashable
 	
 	#Funciones principales
@@ -79,38 +80,40 @@ class Ambulancia:
 
 	def _h_1(self) -> int:
 		"""Función heurística 1 - Manhattan"""
-		if len(self.mapa.nc) != 0 and capacidad_max[0] > len(self.plazas_nc):
-			minimo = self.dist_manhattan(self.mapa.nc)
-		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
-			min_1 = self.dist_manhattan(self.mapa.c)
-			min_2 = math.inf
-			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
-				min_2 = self.dist_manhattan(self.mapa.h_nc)
-			minimo = min(min_1, min_2)
-		elif capacidad_max[1] == len(self.plazas_c) and self.plazas_c[0] == "c" or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0 and self.plazas_c[0]  == "c"):
-			minimo = self.dist_manhattan(self.mapa.h_cc)
-		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
-			minimo = self.dist_manhattan(self.mapa.h_nc)
-		else:
-			minimo = self.dist_manhattan([self.mapa.parking]) - self.coste
-		return minimo
+		minimo = math.inf
+		if len(self.mapa.nc) > 0 and ((len(self.plazas_c) == 0 and len(self.plazas_nc) < capacidad_max[0]) or (self.plazas_c[0] == "nc" and len(self.plazas_c) < capacidad_max[1])):
+			minimo = self.dist_manhattan(self.pos, self.mapa.nc)
+		elif len(self.mapa.c) > 0 and (len(self.plazas_c) == 0 or self.plazas_c[0] == "c") and len(self.plazas_c) < capacidad_max[1]:
+			minimo = self.dist_manhattan(self.pos, self.mapa.c)
+		elif len(self.plazas_c) > 0 and self.plazas_c[0] == "c":
+			minimo = self.dist_manhattan(self.pos, self.mapa.h_cc)
+		elif len(self.plazas_nc) > 0 or (len(self.plazas_c) > 0 and self.plazas_c[0] == "nc"):
+			minimo = self.dist_manhattan(self.pos, self.mapa.h_nc)
+			
+		if (len(self.plazas_nc) == 0 and len(self.mapa.nc) == 0 and len(self.plazas_c) == 0 and len(self.mapa.c) == 0) or self.bateria < minimo:
+			minimo = self.dist_manhattan(self.pos, [self.mapa.parking])
+		try:
+		 	coste = int(self.casilla)
+		 	return minimo + coste - 1
+		except:
+			return minimo 
 
 	def _h_2(self) -> int:
 		"""Función heurística 2 - Euclidea"""
 		if len(self.mapa.nc) != 0 and capacidad_max[0] > len(self.plazas_nc):
-			minimo = self.dist_euclidea(self.mapa.nc)
+			minimo = self.dist_euclidea(self.pos, self.mapa.nc)
 		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
-			min_1 = self.dist_euclidea(self.mapa.c)
+			min_1 = self.dist_euclidea(self.pos, self.mapa.c)
 			min_2 = math.inf
 			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
-				min_2 = self.dist_euclidea(self.mapa.h_nc)
+				min_2 = self.dist_euclidea(self.pos, self.mapa.h_nc)
 			minimo = min(min_1, min_2)
-		elif capacidad_max[1] == len(self.plazas_c) and self.plazas_c[0] == "c" or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0 and self.plazas_c[0]  == "c"):
-			minimo = self.dist_euclidea(self.mapa.h_cc)
+		elif (capacidad_max[1] == len(self.plazas_c) and self.plazas_c[0] == "c") or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0 and self.plazas_c[0]  == "c"):
+			minimo = self.dist_euclidea(self.pos, self.mapa.h_cc)
 		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
-			minimo = self.dist_euclidea(self.mapa.h_nc)
+			minimo = self.dist_euclidea(self.pos, self.mapa.h_nc)
 		else:
-			minimo = self.dist_euclidea([self.mapa.parking]) - self.coste
+			minimo = self.dist_euclidea(self.pos, [self.mapa.parking]) - self.coste
 		return minimo
 
 	
@@ -211,7 +214,7 @@ class Ambulancia:
 			self.heuristica = self._h_1()
 		else:
 			self.heuristica = self._h_2()
-			
+		
 		#Calcular la f(n)
 		self.coste += bateria_gastada
 		self.evaluacion = self.heuristica + self.coste
