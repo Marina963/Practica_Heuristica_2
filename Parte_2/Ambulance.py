@@ -127,44 +127,51 @@ class Ambulancia:
 			heuristica += minimo
 
 			
-	"""def _h_1(self) -> int:
-		#Función heurística 1 - Manhattan
-		minimo = math.inf
-		if len(self.mapa.nc) > 0 and ((len(self.plazas_c) == 0 and len(self.plazas_nc) < capacidad_max[0]) or (self.plazas_c[0] == "nc" and len(self.plazas_c) < capacidad_max[1])):
-			minimo = self.dist_manhattan(self.pos, self.mapa.nc)
-		elif len(self.mapa.c) > 0 and (len(self.plazas_c) == 0 or self.plazas_c[0] == "c") and len(self.plazas_c) < capacidad_max[1]:
-			minimo = self.dist_manhattan(self.pos, self.mapa.c)
-		elif len(self.plazas_c) > 0 and self.plazas_c[0] == "c":
-			minimo = self.dist_manhattan(self.pos, self.mapa.h_cc)
-		elif len(self.plazas_nc) > 0 or (len(self.plazas_c) > 0 and self.plazas_c[0] == "nc"):
-			minimo = self.dist_manhattan(self.pos, self.mapa.h_nc)
-			
-		if (len(self.plazas_nc) == 0 and len(self.mapa.nc) == 0 and len(self.plazas_c) == 0 and len(self.mapa.c) == 0) or self.bateria < minimo:
-			minimo = self.dist_manhattan(self.pos, [self.mapa.parking])
-		try:
-		 	coste = int(self.casilla)
-		 	return minimo + coste - 1
-		except:
-			return minimo 
-	"""
 	def _h_2(self) -> int:
-		"""Función heurística 2 - Euclidea"""
-		if len(self.mapa.nc) != 0 and capacidad_max[0] > len(self.plazas_nc):
-			minimo = self.dist_euclidea(self.pos, self.mapa.nc)
-		elif len(self.mapa.c) != 0 and capacidad_max[1] > len(self.plazas_c):
-			min_1 = self.dist_euclidea(self.pos, self.mapa.c)
-			min_2 = math.inf
-			if len(self.plazas_c) == 0 and len(self.plazas_nc) > 0:
-				min_2 = self.dist_euclidea(self.pos, self.mapa.h_nc)
-			minimo = min(min_1, min_2)
-		elif (capacidad_max[1] == len(self.plazas_c) and self.plazas_c[0] == "c") or (len(self.mapa.c) == 0 and len(self.plazas_c) > 0 and self.plazas_c[0]  == "c"):
-			minimo = self.dist_euclidea(self.pos, self.mapa.h_cc)
-		elif capacidad_max[0] == len(self.plazas_nc) or (len(self.mapa.nc) == 0 and len(self.plazas_nc) > 0):
-			minimo = self.dist_euclidea(self.pos, self.mapa.h_nc)
-		else:
-			minimo = self.dist_euclidea(self.pos, [self.mapa.parking]) - self.coste
-		return minimo
+		heuristica = 0
+		nodos_c = self.mapa.c.copy()
+		nodos_nc = self.mapa.nc.copy()
+		plazas_c, plazas_nc = self.plazas_c.copy(), self.plazas_nc.copy()
+		pos = self.pos.copy()
+		while 1:
+			minimo_nc, minimo_c, minimo_hc, minimo_hn = math.inf, math.inf, math.inf, math.inf
+			if len(nodos_nc) > 0 and len(plazas_nc) < capacidad_max[0] and (len(plazas_c) == 0 or plazas_c[0] == "nc"):
+				minimo_nc, pos_nc = self.dist_euclidea(pos, nodos_nc)
+			if len(nodos_c) > 0 and len(plazas_c) < capacidad_max[1] and (len(plazas_c) == 0 or plazas_c[0] == "c"):
+				minimo_c, pos_c = self.dist_euclidea(pos, nodos_c)
+			if len(plazas_c) > 0 and len(self.mapa.h_cc) > 0 and plazas_c[0] == "c":
+				minimo_hc, pos_hc = self.dist_euclidea(pos, self.mapa.h_cc)  	
+			if len(plazas_nc) > 0 and len(self.mapa.h_nc) > 0 and (len(plazas_c) == 0 or plazas_c[0] == "nc"):
+				minimo_hn, pos_hn = self.dist_euclidea(pos, self.mapa.h_nc)
+			
+			if len(plazas_c) == 0 and len(plazas_nc) == 0 and len(nodos_c) == 0 and len(nodos_nc) == 0:
+				heuristica += self.dist_euclidea(pos, [self.mapa.parking])[0]	
+				return heuristica
+			if not math.isinf(minimo_nc):
+				nodos_nc.remove(pos_nc)
+				pos = pos_nc
+				if len(plazas_nc) < capacidad_max[0]:
+					plazas_nc += ["nc"]
+				elif len(plazas_c) == 0 or plazas_c[0] == "nc":
+					plazas_c += ["c"]
+			elif not math.isinf(minimo_c):
+				nodos_c.remove(pos_c)
+				pos = pos_c
+				plazas_c += ["c"]
+			elif not math.isinf(minimo_hc):
+				if len(plazas_c) > 0 and plazas_c[0] == "c":
+					plazas_c.clear()
+				pos = pos_hc
+			elif not math.isinf(minimo_hn):
+				if len(plazas_nc) > 0:
+					plazas_nc.clear()
+				if len(plazas_c) > 0 and plazas_c[0] == "nc":
+					plazas_c.clear()
+				pos = pos_hn.copy()
+			minimo = min(minimo_nc, minimo_c, minimo_hc, minimo_hn)
+			heuristica += minimo
 
+		
 	
 	def _precondiciones(self, operacion: int) -> bool:
 		"""Precondiciones"""

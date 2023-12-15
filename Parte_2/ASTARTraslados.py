@@ -21,7 +21,7 @@ def main(input_file, num_h):
     
     #Creacion del mapa y de la ambulancia
     mapa = Map(tablero)
-  
+    
     #Creación de los nodos iniciales y final
     nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, 0, None,  mapa.mapa)
     nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, 0,None, mapa.mapa)
