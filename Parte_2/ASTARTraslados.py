@@ -26,12 +26,11 @@ def main(input_file, num_h):
     nodo_inicial = Ambulancia(mapa.parking, [], [], bateria_max, 0, None,  mapa.mapa)
     nodo_final = Ambulancia(mapa.parking, [], [], bateria_max, 0,None, mapa.mapa)
     nodo_final.mapa.c, nodo_final.mapa.nc = [], [] 
-     
+    
     #Llamada al A*
     inicio = time.time()
     salida = astar(nodo_inicial, nodo_final, num_h, mapa)
-    final = time.time()
-    
+    final = time.time()  
     #Check de si el A* encuentra camino
     if salida == False:
         print("No existe camino")
@@ -62,7 +61,6 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
             #Inserta el nodo en la lista cerrada y genera los sucesores
             lista_cerrada[nodo_hasheado] = {"pos":nodo.pos,"casilla":nodo.casilla,"bateria":nodo.bateria,"predecesor":nodo.predecesor}
             conjunto_s = generar_sucesores(nodo, num_h, nodo_hasheado)
-            del(nodo)
             ordenar = False
             for s in conjunto_s:
                 data_s = s.get_hashable_data(num_cols)
@@ -75,6 +73,7 @@ def astar(nodo_inicial, nodo_final, num_h, mapa):
             #Ordena la lista si es necesario
             if ordenar:
                 lista_abierta = dict(sorted(lista_abierta.items(), key=lambda nodo: nodo[1].evaluacion))
+            
     if exito:
         #Si el nodo final es el inicial
         if len(lista_cerrada) == 0:

@@ -27,20 +27,24 @@ class Ambulancia:
 	def dist_manhattan(self, src, lista) -> int:
 		"""Función que devuelve la distancia Manhattan mínima entre el estado y una lista de posiciones"""
 		minimo = math.inf
+		pos = []
 		for i in range(len(lista)):
 			dist = abs(int(src[0]) - int(lista[i][0])) + abs(int(src[1]) - int(lista[i][1]))
 			if dist < minimo:
 				minimo = dist
-		return minimo
+				pos = lista[i].copy()
+		return minimo, pos
 	
 	def dist_euclidea(self, src, lista) -> int:
 		"""Función que devuelve la distancia Euclidea mínima entre el estado y una lista de posiciones"""
 		minimo = math.inf
+		pos = []
 		for i in range(len(lista)):
 			dist = math.sqrt((int(src[0]) - int(lista[i][0]))**2 + (int(src[1]) - int(lista[i][1]))**2)
 			if dist < minimo:
 				minimo = dist
-		return minimo
+				pos = lista[i].copy()
+		return minimo, pos
 
 		
 	def get_state(self) -> list:
@@ -79,7 +83,52 @@ class Ambulancia:
 		return True
 
 	def _h_1(self) -> int:
-		"""Función heurística 1 - Manhattan"""
+		heuristica = 0
+		nodos_c = self.mapa.c.copy()
+		nodos_nc = self.mapa.nc.copy()
+		plazas_c, plazas_nc = self.plazas_c.copy(), self.plazas_nc.copy()
+		pos = self.pos.copy()
+		while 1:
+			minimo_nc, minimo_c, minimo_hc, minimo_hn = math.inf, math.inf, math.inf, math.inf
+			if len(nodos_nc) > 0 and len(plazas_nc) < capacidad_max[0] and (len(plazas_c) == 0 or plazas_c[0] == "nc"):
+				minimo_nc, pos_nc = self.dist_manhattan(pos, nodos_nc)
+			if len(nodos_c) > 0 and len(plazas_c) < capacidad_max[1] and (len(plazas_c) == 0 or plazas_c[0] == "c"):
+				minimo_c, pos_c = self.dist_manhattan(pos, nodos_c)
+			if len(plazas_c) > 0 and len(self.mapa.h_cc) > 0 and plazas_c[0] == "c":
+				minimo_hc, pos_hc = self.dist_manhattan(pos, self.mapa.h_cc)  	
+			if len(plazas_nc) > 0 and len(self.mapa.h_nc) > 0 and (len(plazas_c) == 0 or plazas_c[0] == "nc"):
+				minimo_hn, pos_hn = self.dist_manhattan(pos, self.mapa.h_nc)
+			
+			if len(plazas_c) == 0 and len(plazas_nc) == 0 and len(nodos_c) == 0 and len(nodos_nc) == 0:
+				heuristica += self.dist_manhattan(pos, [self.mapa.parking])[0]	
+				return heuristica
+			if not math.isinf(minimo_nc):
+				nodos_nc.remove(pos_nc)
+				pos = pos_nc
+				if len(plazas_nc) < capacidad_max[0]:
+					plazas_nc += ["nc"]
+				elif len(plazas_c) == 0 or plazas_c[0] == "nc":
+					plazas_c += ["c"]
+			elif not math.isinf(minimo_c):
+				nodos_c.remove(pos_c)
+				pos = pos_c
+				plazas_c += ["c"]
+			elif not math.isinf(minimo_hc):
+				if len(plazas_c) > 0 and plazas_c[0] == "c":
+					plazas_c.clear()
+				pos = pos_hc
+			elif not math.isinf(minimo_hn):
+				if len(plazas_nc) > 0:
+					plazas_nc.clear()
+				if len(plazas_c) > 0 and plazas_c[0] == "nc":
+					plazas_c.clear()
+				pos = pos_hn.copy()
+			minimo = min(minimo_nc, minimo_c, minimo_hc, minimo_hn)
+			heuristica += minimo
+
+			
+	"""def _h_1(self) -> int:
+		#Función heurística 1 - Manhattan
 		minimo = math.inf
 		if len(self.mapa.nc) > 0 and ((len(self.plazas_c) == 0 and len(self.plazas_nc) < capacidad_max[0]) or (self.plazas_c[0] == "nc" and len(self.plazas_c) < capacidad_max[1])):
 			minimo = self.dist_manhattan(self.pos, self.mapa.nc)
@@ -97,7 +146,7 @@ class Ambulancia:
 		 	return minimo + coste - 1
 		except:
 			return minimo 
-
+	"""
 	def _h_2(self) -> int:
 		"""Función heurística 2 - Euclidea"""
 		if len(self.mapa.nc) != 0 and capacidad_max[0] > len(self.plazas_nc):
